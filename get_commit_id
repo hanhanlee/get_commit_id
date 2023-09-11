@@ -1,0 +1,99 @@
+#!/bin/bash
+
+
+
+# Constants
+
+CHANGE_NOTE_FILE="chgNote"
+
+DATE_FORMAT="+%Y-%m-%d %H:%M:%S"
+
+
+
+# Functions
+
+
+
+remove_outdated_commitid() {
+
+
+
+    if [ -e current_commit_id.txt ]; then
+
+        rm current_commit_id.txt
+
+        echo "Previous commit ID has been cleared"
+
+    else
+
+        echo "No previous commit ID"
+
+    fi
+
+}
+
+
+
+# Returns the current date and time
+
+getDate() {
+
+    date "$DATE_FORMAT"
+
+}
+
+
+
+# Returns the name of the current git repository
+
+getCodebase() {
+
+    basename -s .git $(git config --get remote.origin.url)
+
+}
+
+
+
+# Returns a list of submodule names and their latest commit ID
+
+listSubmodules() {
+
+    git submodule foreach --recursive bash -c 'echo "$(basename "$(pwd)") : $(git log --pretty="%h" -1)"'
+
+}
+
+
+
+# Returns the commit ID of the current repository and its submodules
+
+listCommitIDs() {
+
+    echo -e "**\e[33mCurrent Project\e[0m = $(getCodebase) : $(git log --pretty="%h" -1)**"
+
+    echo -e "\e[33mBranch Name: \e[0m$(git branch)"
+
+    listSubmodules
+
+    git submodule foreach git branch
+
+}
+
+
+
+# Main script
+
+
+
+echo "**Get commit ID**"
+
+remove_outdated_commitid
+
+{
+
+getDate
+
+listCommitIDs
+
+} 2>&1 | tee ./current_commit_id.txt
+
+
